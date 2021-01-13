@@ -1,3 +1,6 @@
+.idea/
+public/adminer.php
+
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php

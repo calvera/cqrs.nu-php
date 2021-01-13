@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Cafe\Domain\Tab;
 
+use Cafe\Domain\Tab\Events\DrinksOrdered;
+use Cafe\Domain\Tab\Events\DrinksServed;
+use Cafe\Domain\Tab\Events\FoodOrdered;
 use Cafe\Domain\Tab\Events\FoodPrepared;
 use Cafe\Domain\Tab\Events\FoodServed;
 use Cafe\Domain\Tab\Events\TabClosed;
 use Cafe\Domain\Tab\Events\TabOpened;
-use Cafe\Domain\Tab\Events\DrinksOrdered;
-use Cafe\Domain\Tab\Events\DrinksServed;
-use Cafe\Domain\Tab\Events\FoodOrdered;
 use Cafe\Domain\Tab\Exception\DrinksNotOutstanding;
 use Cafe\Domain\Tab\Exception\FoodNotOutstanding;
 use Cafe\Domain\Tab\Exception\FoodNotPrepared;
@@ -19,14 +19,16 @@ use Cafe\Domain\Tab\Exception\TabHasUnservedItems;
 use Cafe\Domain\Tab\Exception\TabNotOpen;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use EventSauce\EventSourcing\AggregateRoot;
 use EventSauce\EventSourcing\AggregateRootBehaviourWithRequiredHistory;
 use EventSauce\EventSourcing\AggregateRootId;
+use EventSauce\EventSourcing\Snapshotting\AggregateRootWithSnapshotting;
+use EventSauce\EventSourcing\Snapshotting\SnapshottingBehaviour;
 use EventSauce\EventSourcing\UuidAggregateRootId;
 
-final class Tab implements AggregateRoot
+final class Tab implements AggregateRootWithSnapshotting
 {
     use AggregateRootBehaviourWithRequiredHistory;
+    use SnapshottingBehaviour;
 
     private string $tabId;
     private bool $open = false;
@@ -43,7 +45,7 @@ final class Tab implements AggregateRoot
         $this->preparedFood = new ArrayCollection();
     }
 
-    public static function open(string $tabId, int $tableNumber, string $waiter) : self
+    public static function open(string $tabId, int $tableNumber, string $waiter): self
     {
         $tab = new static(UuidAggregateRootId::fromString($tabId));
 
@@ -52,7 +54,7 @@ final class Tab implements AggregateRoot
         return $tab;
     }
 
-    public function order(array $items) : void
+    public function order(array $items): void
     {
         if ($this->isClosed()) {
             throw new TabNotOpen();
@@ -70,7 +72,7 @@ final class Tab implements AggregateRoot
         }
     }
 
-    public function markDrinksServed(array $menuNumbers) : void
+    public function markDrinksServed(array $menuNumbers): void
     {
         if ($this->isClosed()) {
             throw new TabNotOpen();
@@ -83,7 +85,7 @@ final class Tab implements AggregateRoot
         $this->recordThat(new DrinksServed($this->tabId, $menuNumbers));
     }
 
-    public function markFoodPrepared(array $menuNumbers, string $groupId) : void
+    public function markFoodPrepared(array $menuNumbers, string $groupId): void
     {
         if (!$this->isFoodOutstanding($menuNumbers)) {
             throw new FoodNotOutstanding();
@@ -143,7 +145,7 @@ final class Tab implements AggregateRoot
         }
     }
 
-    private function applyFoodOrdered(FoodOrdered $event) : void
+    private function applyFoodOrdered(FoodOrdered $event): void
     {
         $this->outstandingFood = new ArrayCollection();
         foreach ($event->items as $item) {
@@ -151,7 +153,7 @@ final class Tab implements AggregateRoot
         }
     }
 
-    private function applyDrinksServed(DrinksServed $event) : void
+    private function applyDrinksServed(DrinksServed $event): void
     {
         foreach ($event->menuNumbers as $num) {
             /** @var OrderedItem $item */
@@ -161,7 +163,7 @@ final class Tab implements AggregateRoot
         }
     }
 
-    private function applyFoodPrepared(FoodPrepared $event) : void
+    private function applyFoodPrepared(FoodPrepared $event): void
     {
         foreach ($event->menuNumbers as $num) {
             /** @var OrderedItem $item */
@@ -171,7 +173,7 @@ final class Tab implements AggregateRoot
         }
     }
 
-    private function applyFoodServed(FoodServed $event) : void
+    private function applyFoodServed(FoodServed $event): void
     {
         foreach ($event->menuNumbers as $num) {
             /** @var OrderedItem $item */
@@ -181,7 +183,7 @@ final class Tab implements AggregateRoot
         }
     }
 
-    private function applyTabClosed(TabClosed $event) : void
+    private function applyTabClosed(TabClosed $event): void
     {
         $this->open = false;
     }
@@ -189,7 +191,7 @@ final class Tab implements AggregateRoot
     /**
      * @param array<int> $menuNumbers
      */
-    private function areDrinksOutstanding(array $menuNumbers) : bool
+    private function areDrinksOutstanding(array $menuNumbers): bool
     {
         return $this->areAllInList($menuNumbers, $this->outstandingDrinks->toArray());
     }
@@ -197,7 +199,7 @@ final class Tab implements AggregateRoot
     /**
      * @param array<int> $menuNumbers
      */
-    private function isFoodOutstanding(array $menuNumbers) : bool
+    private function isFoodOutstanding(array $menuNumbers): bool
     {
         return $this->areAllInList($menuNumbers, $this->outstandingFood->toArray());
     }
@@ -205,13 +207,13 @@ final class Tab implements AggregateRoot
     /**
      * @param array<int> $menuNumbers
      */
-    private function isFoodPrepared(array $menuNumbers) : bool
+    private function isFoodPrepared(array $menuNumbers): bool
     {
         return $this->areAllInList($menuNumbers, $this->preparedFood->toArray());
     }
 
     /**
-     * @param array<int> $want
+     * @param array<int>         $want
      * @param array<OrderedItem> $have
      */
     private function areAllInList(array $want, array $have): bool
@@ -229,8 +231,32 @@ final class Tab implements AggregateRoot
         return true;
     }
 
-    private function hasUnservedItems() : bool
+    private function hasUnservedItems(): bool
     {
         return $this->outstandingDrinks->count() || $this->outstandingFood->count() || $this->preparedFood->count();
+    }
+
+    protected function createSnapshotState()
+    {
+        return [
+            $this->open,
+            $this->outstandingDrinks->toArray(),
+            $this->outstandingFood->toArray(),
+            $this->preparedFood->toArray(),
+            $this->servedItemsValue,
+        ];
+    }
+
+    protected static function reconstituteFromSnapshotState(AggregateRootId $id, $state): AggregateRootWithSnapshotting
+    {
+        $tab = new static($id);
+
+        $tab->open = $state[0];
+        $tab->outstandingDrinks = new ArrayCollection($state[1]);
+        $tab->outstandingFood = new ArrayCollection($state[2]);
+        $tab->preparedFood = new ArrayCollection($state[3]);
+        $tab->servedItemsValue = $state[4];
+
+        return $tab;
     }
 }
