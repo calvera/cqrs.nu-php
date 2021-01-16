@@ -63,7 +63,7 @@ class EventStoreMessageRepository implements MessageRepository
 
     public function retrieveAll(AggregateRootId $id): Generator
     {
-        return $this->retrieveAllAfterVersion($id, 1);
+        return $this->retrieveAllAfterVersion($id, 0);
     }
 
     public function retrieveAllAfterVersion(AggregateRootId $id, int $aggregateRootVersion): Generator

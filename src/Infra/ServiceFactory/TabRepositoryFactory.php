@@ -11,17 +11,16 @@ use Cafe\Infra\TabRepositoryEventSauce;
 use Doctrine\DBAL\Connection;
 use EventSauce\EventSourcing\ConstructingAggregateRootRepository;
 use EventSauce\EventSourcing\Serialization\ConstructingMessageSerializer;
+use EventSauce\EventSourcing\Serialization\UpcastingMessageSerializer;
 use EventSauce\EventSourcing\Snapshotting\ConstructingAggregateRootRepositoryWithSnapshotting;
 use EventSauce\EventSourcing\SynchronousMessageDispatcher;
+use EventSauce\EventSourcing\Upcasting\DelegatingUpcaster;
 use Prooph\EventStore\EventStoreConnection;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class TabRepositoryFactory
 {
     private EventStoreConnection $connection;
-    /**
-     * @var Connection
-     */
     private Connection $dbalConnection;
     private SerializerInterface $serializer;
 
@@ -38,22 +37,21 @@ class TabRepositoryFactory
 
         $repository = new EventStoreMessageRepository(
             $this->connection,
-            new ConstructingMessageSerializer(),
+            new UpcastingMessageSerializer(
+                new ConstructingMessageSerializer(),
+                new DelegatingUpcaster()
+            ),
             'tab'
         );
-
-        $snapshotRepository = new RedisSnapshotRepository($this->serializer);
-//        $snapshotRepository = new DoctrineMessageRepository(
-//            $this->connection,
-//            new ConstructingMessageSerializer(),
-//            'aggregate_snapshot_tab'
-//        );
 
         return new TabRepositoryEventSauce(
             new ConstructingAggregateRootRepositoryWithSnapshotting(
                 $className,
                 $repository,
-                $snapshotRepository,
+                new ChainSnapshotRepository(
+                    new RedisSnapshotRepository($this->serializer),
+                    new DoctrineSnapshotRepository($this->dbalConnection, $this->serializer)
+                ),
                 new ConstructingAggregateRootRepository(
                     $className,
                     $repository,
