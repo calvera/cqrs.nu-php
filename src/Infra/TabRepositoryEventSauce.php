@@ -6,7 +6,6 @@ namespace Cafe\Infra;
 
 use Cafe\Domain\Tab\Tab;
 use Cafe\Domain\Tab\TabRepository;
-use EventSauce\EventSourcing\AggregateRootRepository;
 use EventSauce\EventSourcing\Snapshotting\AggregateRootRepositoryWithSnapshotting;
 use EventSauce\EventSourcing\UuidAggregateRootId;
 

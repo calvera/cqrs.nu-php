@@ -23,7 +23,7 @@ final class DrinksOrdered implements SerializablePayload
     {
         return [
             'tabId' => $this->tabId,
-            'items' => array_map(fn(OrderedItem $item) => $item->jsonSerialize(), $this->items)
+            'items' => array_map(fn(OrderedItem $item) => $item->jsonSerialize(), $this->items),
         ];
     }
 
@@ -31,12 +31,15 @@ final class DrinksOrdered implements SerializablePayload
     {
         return new self(
             $payload['tabId'],
-            array_map(fn(array $item) => new OrderedItem(
-                $item['menuNumber'],
-                $item['description'],
-                $item['isDrink'],
-                $item['price']
-            ), $payload['items'])
+            array_map(
+                static fn(array $item) => new OrderedItem(
+                    $item['menuNumber'],
+                    $item['description'],
+                    $item['isDrink'],
+                    $item['price']
+                ),
+                $payload['items']
+            )
         );
     }
 }

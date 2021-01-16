@@ -28,7 +28,7 @@ class OpenTabsQueriesDBAL implements OpenTabsQueries
 
         $tableNumbers = $this->connection->fetchFirstColumn($sql);
 
-        if (! $tableNumbers) {
+        if (!$tableNumbers) {
             return [];
         }
 
@@ -45,6 +45,7 @@ class OpenTabsQueriesDBAL implements OpenTabsQueries
     public function tabIdForTable(int $tableNumber): string
     {
         $sql = 'select tab_id from read_model_tab where table_number = :table_number';
+
         return $this->connection->fetchOne($sql, ['table_number' => $tableNumber]);
     }
 
@@ -87,11 +88,15 @@ class OpenTabsQueriesDBAL implements OpenTabsQueries
      */
     private function hydrateItems(string $tabId): array
     {
-        $rowsItems = $this->connection->fetchAllAssociative('select * from read_model_tab_item where tab_id = :tab_id', [
-            'tab_id' => $tabId,
-        ]);
+        $rowsItems = $this->connection->fetchAllAssociative(
+            'select * from read_model_tab_item where tab_id = :tab_id',
+            [
+                'tab_id' => $tabId,
+            ]
+        );
 
         $items = array_map(fn(array $row) => new TabItem((int)$row['menu_number'], $row['description'], (float)$row['price'], $row['status']), $rowsItems);
+
         return $items;
     }
 }

@@ -14,12 +14,16 @@ services:
     entrypoint: "php -S 0.0.0.0:8000 -t public"
     depends_on:
       - mysql
+      - eventstore
+      - redis
 
   mysql:
     image: mysql:5.7
     container_name: cafe-mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: always
+    volumes:
+      - ./data/mysql:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root-cafe
       MYSQL_DATABASE: cafe-db
@@ -27,3 +31,28 @@ services:
       MYSQL_PASSWORD: cafe-pass
     ports:
       - 3307:3306
+
+  eventstore:
+    image: eventstore/eventstore
+    container_name: cafe-eventstore
+    restart: always
+    volumes:
+      - ./data/eventstore-data:/var/lib/eventstore
+      - ./data/eventstore-log:/var/log/eventstore
+    environment:
+      - EVENTSTORE_CLUSTER_SIZE=1
+      - EVENTSTORE_RUN_PROJECTIONS=All
+      - EVENTSTORE_START_STANDARD_PROJECTIONS=true
+      - EVENTSTORE_EXT_TCP_PORT=1113
+      - EVENTSTORE_EXT_HTTP_PORT=2113
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_ENABLE_EXTERNAL_TCP=true
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+    ports:
+      - 2113:2113
+      - 1113:1113
+
+  redis:
+    image: redis
+    container_name: cafe-redis
+    restart: always

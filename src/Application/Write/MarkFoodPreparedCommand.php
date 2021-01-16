@@ -8,7 +8,7 @@ class MarkFoodPreparedCommand
 {
     public string $tabId;
     public string $groupId;
-    /** @var array<int>  */
+    /** @var array<int> */
     public array $menuNumbers;
 
     public function __construct(string $tabId, string $groupId, array $menuNumbers)

@@ -18,20 +18,20 @@ class TabHandler
         $this->repository = $repository;
     }
 
-    public function handleOpenTabCommand(OpenTabCommand $command) : void
+    public function handleOpenTabCommand(OpenTabCommand $command): void
     {
         $tab = Tab::open($command->tabId, $command->tableNumber, $command->waiter);
         $this->repository->save($tab);
     }
 
-    public function handlePlaceOrderCommand(PlaceOrderCommand $command) : void
+    public function handlePlaceOrderCommand(PlaceOrderCommand $command): void
     {
         $tab = $this->repository->get($command->tabId);
         $tab->order($command->items);
         $this->repository->save($tab);
     }
 
-    public function handleMarkItemsServedCommand(MarkItemsServedCommand $command) : void
+    public function handleMarkItemsServedCommand(MarkItemsServedCommand $command): void
     {
         $tab = $this->repository->get($command->tabId);
         $menu = StaticData::getMenu();
@@ -40,7 +40,7 @@ class TabHandler
         $foodNumbers = [];
 
         /**
-         * @var int $menuNumber
+         * @var int      $menuNumber
          * @var MenuItem $menuItem
          */
         foreach ($command->menuNumbers as $menuNumber) {
@@ -62,14 +62,14 @@ class TabHandler
         $this->repository->save($tab);
     }
 
-    public function handleMarkFoodPreparedCommand(MarkFoodPreparedCommand $command) : void
+    public function handleMarkFoodPreparedCommand(MarkFoodPreparedCommand $command): void
     {
         $tab = $this->repository->get($command->tabId);
         $tab->markFoodPrepared($command->menuNumbers, $command->groupId);
         $this->repository->save($tab);
     }
 
-    public function handleCloseTabCommand(CloseTabCommand $command) : void
+    public function handleCloseTabCommand(CloseTabCommand $command): void
     {
         $tab = $this->repository->get($command->tabId);
         $tab->close($command->amountPaid);

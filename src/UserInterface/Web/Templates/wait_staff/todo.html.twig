@@ -1,25 +1,25 @@
 {% extends 'base.html.twig' %}
 {% block title %}Todo List For {{ waiter }}{% endblock %}
 {% block content %}
-    <h2>Todo List For @ViewBag.Waiter</h2>
-    {% for table in tables %}
+  <h2>Todo List For @ViewBag.Waiter</h2>
+  {% for table in tables %}
     <h3>Table @table.Key</h3>
     <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th scope="col">Menu #</th>
-                <th scope="col">Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in table %}
-            <tr>
-                <td>{{ item.menuNumber }}</td>
-                <td>{{ item.description }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+      <thead class="thead-light">
+      <tr>
+        <th scope="col">Menu #</th>
+        <th scope="col">Description</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for item in table %}
+        <tr>
+          <td>{{ item.menuNumber }}</td>
+          <td>{{ item.description }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
     </table>
     <a href="{{ path('tab_status', {tableId : '1'}) }}">Go To Tab</a>
-    {% endfor %}
+  {% endfor %}
 {% endblock %}

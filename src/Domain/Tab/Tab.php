@@ -30,10 +30,27 @@ final class Tab implements AggregateRootWithSnapshotting
     use AggregateRootBehaviourWithRequiredHistory;
     use SnapshottingBehaviour;
 
+    public static function open(string $tabId, int $tableNumber, string $waiter): self
+    {
+        $tab = new static(UuidAggregateRootId::fromString($tabId));
+
+        $tab->recordThat(new TabOpened($tabId, $tableNumber, $waiter));
+
+        return $tab;
+    }
     private string $tabId;
     private bool $open = false;
+    /**
+     * @var Collection<int,OrderedItem>
+     */
     private Collection $outstandingDrinks;
+    /**
+     * @var Collection<int,OrderedItem>
+     */
     private Collection $outstandingFood;
+    /**
+     * @var Collection<int,OrderedItem>
+     */
     private Collection $preparedFood;
     private float $servedItemsValue = 0.0;
 
@@ -43,15 +60,6 @@ final class Tab implements AggregateRootWithSnapshotting
         $this->outstandingDrinks = new ArrayCollection();
         $this->outstandingFood = new ArrayCollection();
         $this->preparedFood = new ArrayCollection();
-    }
-
-    public static function open(string $tabId, int $tableNumber, string $waiter): self
-    {
-        $tab = new static(UuidAggregateRootId::fromString($tabId));
-
-        $tab->recordThat(new TabOpened($tabId, $tableNumber, $waiter));
-
-        return $tab;
     }
 
     public function order(array $items): void
@@ -72,6 +80,11 @@ final class Tab implements AggregateRootWithSnapshotting
         }
     }
 
+    private function isClosed(): bool
+    {
+        return !$this->open;
+    }
+
     public function markDrinksServed(array $menuNumbers): void
     {
         if ($this->isClosed()) {
@@ -85,6 +98,33 @@ final class Tab implements AggregateRootWithSnapshotting
         $this->recordThat(new DrinksServed($this->tabId, $menuNumbers));
     }
 
+    /**
+     * @param array<int> $menuNumbers
+     */
+    private function areDrinksOutstanding(array $menuNumbers): bool
+    {
+        return $this->areAllInList($menuNumbers, $this->outstandingDrinks->toArray());
+    }
+
+    /**
+     * @param array<int>         $want
+     * @param array<OrderedItem> $have
+     */
+    private function areAllInList(array $want, array $have): bool
+    {
+        //todo... jesus... move this to collection.
+        $curHave = array_map(static fn(OrderedItem $orderedItem) => $orderedItem->menuNumber, $have);
+        foreach ($want as $num) {
+            if (($key = array_search($num, $curHave, true)) !== false) {
+                unset($curHave[$key]);
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function markFoodPrepared(array $menuNumbers, string $groupId): void
     {
         if (!$this->isFoodOutstanding($menuNumbers)) {
@@ -92,6 +132,14 @@ final class Tab implements AggregateRootWithSnapshotting
         }
 
         $this->recordThat(new FoodPrepared($this->tabId, $groupId, $menuNumbers));
+    }
+
+    /**
+     * @param array<int> $menuNumbers
+     */
+    private function isFoodOutstanding(array $menuNumbers): bool
+    {
+        return $this->areAllInList($menuNumbers, $this->outstandingFood->toArray());
     }
 
     public function markFoodServed(array $menuNumbers): void
@@ -107,9 +155,12 @@ final class Tab implements AggregateRootWithSnapshotting
         $this->recordThat(new FoodServed($this->tabId, $menuNumbers));
     }
 
-    private function isClosed(): bool
+    /**
+     * @param array<int> $menuNumbers
+     */
+    private function isFoodPrepared(array $menuNumbers): bool
     {
-        return !$this->open;
+        return $this->areAllInList($menuNumbers, $this->preparedFood->toArray());
     }
 
     public function close(float $amountPaid): void
@@ -129,6 +180,161 @@ final class Tab implements AggregateRootWithSnapshotting
         $tipValue = $amountPaid - $this->servedItemsValue;
 
         $this->recordThat(new TabClosed($this->tabId, $amountPaid, $this->servedItemsValue, $tipValue));
+    }
+
+    private function hasUnservedItems(): bool
+    {
+        return $this->outstandingDrinks->count() || $this->outstandingFood->count() || $this->preparedFood->count();
+    }
+
+    /**
+     * @return string
+     */
+    public function getTabId(): string
+    {
+        return $this->tabId;
+    }
+
+    /**
+     * @param string $tabId
+     */
+    public function setTabId(string $tabId): void
+    {
+        $this->tabId = $tabId;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOpen(): bool
+    {
+        return $this->open;
+    }
+
+    /**
+     * @param bool $open
+     */
+    public function setOpen(bool $open): void
+    {
+        $this->open = $open;
+    }
+
+    /**
+     * @return Collection<int,OrderedItem>
+     */
+    public function getOutstandingDrinks()
+    {
+        return $this->outstandingDrinks;
+    }
+
+    /**
+     * @param Collection<int,OrderedItem>|OrderedItem[] $outstandingDrinks
+     */
+    public function setOutstandingDrinks($outstandingDrinks): void
+    {
+        if (is_array($outstandingDrinks)) {
+            $this->outstandingDrinks = new ArrayCollection($outstandingDrinks);
+        } else {
+            $this->outstandingDrinks = $outstandingDrinks;
+        }
+    }
+
+    /**
+     * @return Collection<int,OrderedItem>
+     */
+    public function getOutstandingFood()
+    {
+        return $this->outstandingFood;
+    }
+
+    /**
+     * @param Collection<int,OrderedItem>|OrderedItem[] $outstandingFood
+     */
+    public function setOutstandingFood($outstandingFood): void
+    {
+        if (is_array($outstandingFood)) {
+            $this->outstandingFood = new ArrayCollection($outstandingFood);
+        } else {
+            $this->outstandingFood = $outstandingFood;
+        }
+    }
+
+    /**
+     * @return Collection<int,OrderedItem>
+     */
+    public function getPreparedFood()
+    {
+        return $this->preparedFood;
+    }
+
+    /**
+     * @param Collection<int,OrderedItem>|OrderedItem[] $preparedFood
+     */
+    public function setPreparedFood($preparedFood): void
+    {
+        if (is_array($preparedFood)) {
+            $this->preparedFood = new ArrayCollection($preparedFood);
+        } else {
+            $this->preparedFood = $preparedFood;
+        }
+    }
+
+    /**
+     * @return float
+     */
+    public function getServedItemsValue(): float
+    {
+        return $this->servedItemsValue;
+    }
+
+    /**
+     * @param float $servedItemsValue
+     */
+    public function setServedItemsValue(float $servedItemsValue): void
+    {
+        $this->servedItemsValue = $servedItemsValue;
+    }
+
+    /**
+     * @return int
+     */
+    public function getAggregateRootVersion(): int
+    {
+        return $this->aggregateRootVersion;
+    }
+
+    /**
+     * @param int $aggregateRootVersion
+     */
+    public function setAggregateRootVersion(int $aggregateRootVersion): void
+    {
+        $this->aggregateRootVersion = $aggregateRootVersion;
+    }
+
+    /**
+     * @return AggregateRootId
+     */
+    public function getAggregateRootId(): AggregateRootId
+    {
+        return $this->aggregateRootId;
+    }
+
+    /**
+     * @param AggregateRootId $aggregateRootId
+     */
+    public function setAggregateRootId(AggregateRootId $aggregateRootId): void
+    {
+        $this->aggregateRootId = $aggregateRootId;
+    }
+
+    protected function createSnapshotState()
+    {
+        return $this;
+    }
+
+    protected static function reconstituteFromSnapshotState(AggregateRootId $id, $state): AggregateRootWithSnapshotting
+    {
+        return $state;
     }
 
     private function applyTabOpened(TabOpened $event): void
@@ -188,75 +394,5 @@ final class Tab implements AggregateRootWithSnapshotting
         $this->open = false;
     }
 
-    /**
-     * @param array<int> $menuNumbers
-     */
-    private function areDrinksOutstanding(array $menuNumbers): bool
-    {
-        return $this->areAllInList($menuNumbers, $this->outstandingDrinks->toArray());
-    }
 
-    /**
-     * @param array<int> $menuNumbers
-     */
-    private function isFoodOutstanding(array $menuNumbers): bool
-    {
-        return $this->areAllInList($menuNumbers, $this->outstandingFood->toArray());
-    }
-
-    /**
-     * @param array<int> $menuNumbers
-     */
-    private function isFoodPrepared(array $menuNumbers): bool
-    {
-        return $this->areAllInList($menuNumbers, $this->preparedFood->toArray());
-    }
-
-    /**
-     * @param array<int>         $want
-     * @param array<OrderedItem> $have
-     */
-    private function areAllInList(array $want, array $have): bool
-    {
-        //todo... jesus... move this to collection.
-        $curHave = array_map(fn(OrderedItem $orderedItem) => $orderedItem->menuNumber, $have);
-        foreach ($want as $num) {
-            if (($key = array_search($num, $curHave, true)) !== false) {
-                unset($curHave[$key]);
-            } else {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function hasUnservedItems(): bool
-    {
-        return $this->outstandingDrinks->count() || $this->outstandingFood->count() || $this->preparedFood->count();
-    }
-
-    protected function createSnapshotState()
-    {
-        return [
-            $this->open,
-            $this->outstandingDrinks->toArray(),
-            $this->outstandingFood->toArray(),
-            $this->preparedFood->toArray(),
-            $this->servedItemsValue,
-        ];
-    }
-
-    protected static function reconstituteFromSnapshotState(AggregateRootId $id, $state): AggregateRootWithSnapshotting
-    {
-        $tab = new static($id);
-
-        $tab->open = $state[0];
-        $tab->outstandingDrinks = new ArrayCollection($state[1]);
-        $tab->outstandingFood = new ArrayCollection($state[2]);
-        $tab->preparedFood = new ArrayCollection($state[3]);
-        $tab->servedItemsValue = $state[4];
-
-        return $tab;
-    }
 }

@@ -57,8 +57,8 @@ final class TabInvoice
         $total = 0.0;
         /** @var TabItem $item */
         foreach ($this->items as $item) {
-            if($item->status === TabItem::STATUS_SERVED) {
-                $total+= $item->price;
+            if ($item->status === TabItem::STATUS_SERVED) {
+                $total += $item->price;
             }
         }
 

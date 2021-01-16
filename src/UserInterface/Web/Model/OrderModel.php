@@ -6,7 +6,7 @@ namespace Cafe\UserInterface\Web\Model;
 
 class OrderModel
 {
-    /** @var array<OrderItem>  */
+    /** @var array<OrderItem> */
     public array $items;
 
     public function __construct(array $items)
@@ -14,7 +14,7 @@ class OrderModel
         $this->items = $items;
     }
 
-    public function getOnlyOrdered() : array
+    public function getOnlyOrdered(): array
     {
         return array_filter($this->items, fn(OrderItem $item) => $item->numberToOrder > 0);
     }

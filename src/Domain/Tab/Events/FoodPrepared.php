@@ -25,7 +25,7 @@ final class FoodPrepared implements SerializablePayload
         return [
             'tabId' => $this->tabId,
             'groupId' => $this->groupId,
-            'menuNumbers' => $this->menuNumbers
+            'menuNumbers' => $this->menuNumbers,
         ];
     }
 

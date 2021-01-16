@@ -7,7 +7,7 @@ namespace Cafe\Application\Write;
 class MarkDrinksServedCommand
 {
     public string $tabId;
-    /** @var array<int>  */
+    /** @var array<int> */
     public array $menuNumbers;
 
     public function __construct(string $tabId, array $menuNumbers)

@@ -14,16 +14,22 @@ class OrderType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->add('items', CollectionType::class, [
-            'entry_type' => OrderItemType::class,
-            'entry_options' => ['label' => false],
-        ]);
+        $builder->add(
+            'items',
+            CollectionType::class,
+            [
+                'entry_type' => OrderItemType::class,
+                'entry_options' => ['label' => false],
+            ]
+        );
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults([
-            'data_class' => OrderModel::class,
-        ]);
+        $resolver->setDefaults(
+            [
+                'data_class' => OrderModel::class,
+            ]
+        );
     }
 }

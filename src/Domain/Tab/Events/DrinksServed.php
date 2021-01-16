@@ -22,7 +22,7 @@ final class DrinksServed implements SerializablePayload
     {
         return [
             'tabId' => $this->tabId,
-            'menuNumbers' => $this->menuNumbers
+            'menuNumbers' => $this->menuNumbers,
         ];
     }
 

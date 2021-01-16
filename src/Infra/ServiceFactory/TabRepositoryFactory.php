@@ -9,33 +9,40 @@ use Cafe\Infra\Read\ChefTodoProjector;
 use Cafe\Infra\Read\TabProjector;
 use Cafe\Infra\TabRepositoryEventSauce;
 use Doctrine\DBAL\Connection;
-use EventSauce\DoctrineMessageRepository\DoctrineMessageRepository;
 use EventSauce\EventSourcing\ConstructingAggregateRootRepository;
 use EventSauce\EventSourcing\Serialization\ConstructingMessageSerializer;
 use EventSauce\EventSourcing\Snapshotting\ConstructingAggregateRootRepositoryWithSnapshotting;
-use EventSauce\EventSourcing\Snapshotting\InMemorySnapshotRepository;
 use EventSauce\EventSourcing\SynchronousMessageDispatcher;
+use Prooph\EventStore\EventStoreConnection;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class TabRepositoryFactory
 {
-    private Connection $connection;
+    private EventStoreConnection $connection;
+    /**
+     * @var Connection
+     */
+    private Connection $dbalConnection;
+    private SerializerInterface $serializer;
 
-    public function __construct(Connection $connection)
+    public function __construct(EventStoreConnection $connection, Connection $dbalConnection, SerializerInterface $serializer)
     {
         $this->connection = $connection;
+        $this->dbalConnection = $dbalConnection;
+        $this->serializer = $serializer;
     }
 
     public function create(): TabRepositoryEventSauce
     {
         $className = Tab::class;
 
-        $repository = new DoctrineMessageRepository(
+        $repository = new EventStoreMessageRepository(
             $this->connection,
             new ConstructingMessageSerializer(),
-            'aggregate_tab'
+            'tab'
         );
 
-        $snapshotRepository = new InMemorySnapshotRepository();
+        $snapshotRepository = new RedisSnapshotRepository($this->serializer);
 //        $snapshotRepository = new DoctrineMessageRepository(
 //            $this->connection,
 //            new ConstructingMessageSerializer(),
@@ -51,8 +58,8 @@ class TabRepositoryFactory
                     $className,
                     $repository,
                     new SynchronousMessageDispatcher(
-                        new TabProjector($this->connection),
-                        new ChefTodoProjector($this->connection),
+                        new TabProjector($this->dbalConnection),
+                        new ChefTodoProjector($this->dbalConnection),
                     )
                 )
             )

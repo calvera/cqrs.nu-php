@@ -25,28 +25,34 @@ class TabProjector implements Consumer
         $this->connection = $connection;
     }
 
-    public function handle(Message $message) : void
+    public function handle(Message $message): void
     {
         $event = $message->event();
 
         if ($event instanceof TabOpened) {
-            $this->connection->insert('read_model_tab', [
-                'tab_id' => $event->tabId,
-                'table_number' => $event->tableNumber,
-                'waiter' => $event->waiter,
-            ]);
+            $this->connection->insert(
+                'read_model_tab',
+                [
+                    'tab_id' => $event->tabId,
+                    'table_number' => $event->tableNumber,
+                    'waiter' => $event->waiter,
+                ]
+            );
         }
 
         if ($event instanceof DrinksOrdered) {
             /** @var OrderedItem $item */
             foreach ($event->items as $item) {
-                $this->connection->insert('read_model_tab_item', [
-                    'tab_id' => $event->tabId,
-                    'menu_number' => $item->menuNumber,
-                    'description' => $item->description,
-                    'price' => $item->price,
-                    'status' => 'to-serve'
-                ]);
+                $this->connection->insert(
+                    'read_model_tab_item',
+                    [
+                        'tab_id' => $event->tabId,
+                        'menu_number' => $item->menuNumber,
+                        'description' => $item->description,
+                        'price' => $item->price,
+                        'status' => 'to-serve',
+                    ]
+                );
             }
         }
 
@@ -60,12 +66,15 @@ class TabProjector implements Consumer
                         tab_id = :tab_id and
                         status = :old_status
                     limit 1';
-                $this->connection->executeQuery($sql, [
-                    'new_status' => 'served',
-                    'old_status' => 'to-serve',
-                    'menu_number' => $menuNumber,
-                    'tab_id' => $event->tabId
-                ]);
+                $this->connection->executeQuery(
+                    $sql,
+                    [
+                        'new_status' => 'served',
+                        'old_status' => 'to-serve',
+                        'menu_number' => $menuNumber,
+                        'tab_id' => $event->tabId,
+                    ]
+                );
             }
         }
 
@@ -73,13 +82,16 @@ class TabProjector implements Consumer
             //Todo, create a method for these loops in order to DRY) {
             /** @var OrderedItem $item */
             foreach ($event->items as $item) {
-                $this->connection->insert('read_model_tab_item', [
-                    'tab_id' => $event->tabId,
-                    'menu_number' => $item->menuNumber,
-                    'description' => $item->description,
-                    'price' => $item->price,
-                    'status' => 'in-preparation'
-                ]);
+                $this->connection->insert(
+                    'read_model_tab_item',
+                    [
+                        'tab_id' => $event->tabId,
+                        'menu_number' => $item->menuNumber,
+                        'description' => $item->description,
+                        'price' => $item->price,
+                        'status' => 'in-preparation',
+                    ]
+                );
             }
         }
 
@@ -93,12 +105,15 @@ class TabProjector implements Consumer
                         tab_id = :tab_id and
                         status = :old_status
                     limit 1';
-                $this->connection->executeQuery($sql, [
-                    'old_status' => 'in-preparation',
-                    'new_status' => 'to-serve',
-                    'menu_number' => $menuNumber,
-                    'tab_id' => $event->tabId
-                ]);
+                $this->connection->executeQuery(
+                    $sql,
+                    [
+                        'old_status' => 'in-preparation',
+                        'new_status' => 'to-serve',
+                        'menu_number' => $menuNumber,
+                        'tab_id' => $event->tabId,
+                    ]
+                );
             }
         }
 
@@ -112,20 +127,23 @@ class TabProjector implements Consumer
                         tab_id = :tab_id and
                         status = :old_status
                     limit 1';
-                $this->connection->executeQuery($sql, [
-                    'old_status' => 'to-serve',
-                    'new_status' => 'served', //use constants here.
-                    'menu_number' => $menuNumber,
-                    'tab_id' => $event->tabId
-                ]);
+                $this->connection->executeQuery(
+                    $sql,
+                    [
+                        'old_status' => 'to-serve',
+                        'new_status' => 'served', //use constants here.
+                        'menu_number' => $menuNumber,
+                        'tab_id' => $event->tabId,
+                    ]
+                );
             }
         }
 
         if ($event instanceof TabClosed) {
             $tables = ['read_model_chef_todo_group', 'read_model_chef_todo_item', 'read_model_tab', 'read_model_tab_item'];
             foreach ($tables as $table) {
-                $sql = 'delete from ' . $table . ' where tab_id = :tab_id';
-                $this->connection->executeQuery($sql,  ['tab_id' => $event->tabId]);
+                $sql = 'delete from '.$table.' where tab_id = :tab_id';
+                $this->connection->executeQuery($sql, ['tab_id' => $event->tabId]);
             }
         }
     }

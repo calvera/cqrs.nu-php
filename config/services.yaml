@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     cafe.database.url: '%env(resolve:CAFE_DATABASE_URL)%'
+    cafe.eventstore.host: '%env(resolve:CAFE_EVENTSTORE_HOST)%'
+    cafe.eventstore.port: '%env(resolve:CAFE_EVENTSTORE_PORT)%'
 
 services:
     # default configuration for services in *this* file
@@ -36,6 +38,22 @@ services:
         # the first argument is the class and the second argument is the static method
         factory: [ '@Cafe\Infra\ServiceFactory\DoctrineFactory', 'create' ]
         arguments: ['%cafe.database.url%']
+
+    Prooph\EventStore\EventStoreConnection:
+        # the first argument is the class and the second argument is the static method
+        factory: [ 'Prooph\EventStoreHttpClient\EventStoreConnectionFactory', 'create' ]
+        arguments:
+            - '@Prooph\EventStoreHttpClient\ConnectionSettings'
+            - '@eight_points_guzzle.client.eventstore'
+
+    Prooph\EventStoreHttpClient\ConnectionSettings:
+        arguments:
+            - '@Prooph\EventStore\EndPoint'
+
+    Prooph\EventStore\EndPoint:
+        arguments:
+            - '%cafe.eventstore.host%'
+            - '%cafe.eventstore.port%'
 
     League\Tactician\CommandBus:
         # the first argument is the class and the second argument is the static method

@@ -16,20 +16,29 @@ class OrderItemType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('menuNumber', TextType::class, [
-                'disabled' => true,
-            ])
-            ->add('description', TextType::class, [
-                'disabled' => true,
-            ])
-            ->add('numberToOrder', IntegerType::class)
-        ;
+            ->add(
+                'menuNumber',
+                TextType::class,
+                [
+                    'disabled' => true,
+                ]
+            )
+            ->add(
+                'description',
+                TextType::class,
+                [
+                    'disabled' => true,
+                ]
+            )
+            ->add('numberToOrder', IntegerType::class);
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults([
-            'data_class' => OrderItem::class,
-        ]);
+        $resolver->setDefaults(
+            [
+                'data_class' => OrderItem::class,
+            ]
+        );
     }
 }

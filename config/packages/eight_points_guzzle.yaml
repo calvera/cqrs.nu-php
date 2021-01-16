@@ -1,0 +1,6 @@
+eight_points_guzzle:
+  clients:
+    eventstore:
+      options:
+        timeout: 5
+        http_errors: true

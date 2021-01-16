@@ -30,7 +30,7 @@ class ChefTodoListQueriesDBAL implements ChefTodoListQueries
         foreach ($itemsByGroupId as $groupId => $itemRows) {
             $items = [];
             foreach ($itemRows as $i => $itemRow) {
-                $items[] = new TodoListItem((int) $itemRow['menu_number'], $itemRow['description']);
+                $items[] = new TodoListItem((int)$itemRow['menu_number'], $itemRow['description']);
             }
             $groups[] = new TodoListGroup($groupId, $itemRows[$i]['tab_id'], $items);
         }

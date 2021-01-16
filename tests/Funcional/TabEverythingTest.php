@@ -16,7 +16,7 @@ class TabEverythingTest extends WebTestCase
     private int $tableNumber;
     private KernelBrowser $client;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->tableNumber = random_int(1, 111111);
         $this->client = self::createClient();
@@ -35,7 +35,7 @@ class TabEverythingTest extends WebTestCase
 
         $this->client->submit($form);
 
-        self::assertResponseRedirects('/tab/' . $this->tableNumber . '/order');
+        self::assertResponseRedirects('/tab/'.$this->tableNumber.'/order');
 
         return $this->tableNumber;
     }
@@ -46,7 +46,7 @@ class TabEverythingTest extends WebTestCase
      */
     public function can_order_items(int $tableNumber): int
     {
-        $crawler = $this->client->request('GET', '/tab/' . $tableNumber . '/order');
+        $crawler = $this->client->request('GET', '/tab/'.$tableNumber.'/order');
 
         $form = $crawler->selectButton('Place Order')->form();
         $form['order[items][1][numberToOrder]'] = 1;
@@ -54,7 +54,7 @@ class TabEverythingTest extends WebTestCase
 
         $this->client->submit($form);
 
-        self::assertResponseRedirects('/tab/' . $tableNumber . '/status');
+        self::assertResponseRedirects('/tab/'.$tableNumber.'/status');
 
         return $tableNumber;
     }
@@ -63,9 +63,9 @@ class TabEverythingTest extends WebTestCase
      * @depends can_order_items
      * @test
      */
-    public function can_see_tab_status(int $tableNumber) : int
+    public function can_see_tab_status(int $tableNumber): int
     {
-        $this->client->request('GET', '/tab/' . $tableNumber . '/status');
+        $this->client->request('GET', '/tab/'.$tableNumber.'/status');
 
         self::assertResponseIsSuccessful();
 
@@ -76,7 +76,7 @@ class TabEverythingTest extends WebTestCase
      * @depends can_order_items
      * @test
      */
-    public function can_mark_food_prepared(int $tableNumber) : int
+    public function can_mark_food_prepared(int $tableNumber): int
     {
         $crawler = $this->client->request('GET', '/chef');
 
@@ -96,18 +96,22 @@ class TabEverythingTest extends WebTestCase
      */
     public function can_serve_items(int $tableNumber): int
     {
-        $crawler = $this->client->request('GET', '/tab/' . $tableNumber . '/status');
+        $crawler = $this->client->request('GET', '/tab/'.$tableNumber.'/status');
 
         $form = $crawler->selectButton('mark-served')->form();
-        $form->setValues(['items' => [
-            0 => 1,
-            1 => 14,
-        ]]);
+        $form->setValues(
+            [
+                'items' => [
+                    0 => 1,
+                    1 => 14,
+                ],
+            ]
+        );
 
 
         $this->client->submit($form);
 
-        self::assertResponseRedirects('/tab/' . $tableNumber . '/status');
+        self::assertResponseRedirects('/tab/'.$tableNumber.'/status');
 
         return $tableNumber;
     }
@@ -118,7 +122,7 @@ class TabEverythingTest extends WebTestCase
      */
     public function can_close_tab(int $tableNumber): void
     {
-        $crawler = $this->client->request('GET', '/tab/' . $tableNumber . '/close');
+        $crawler = $this->client->request('GET', '/tab/'.$tableNumber.'/close');
 
         $form = $crawler->selectButton('Close Tab')->form();
         $form['close_tab[amountPaid]'] = 50;

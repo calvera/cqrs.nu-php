@@ -27,19 +27,22 @@ final class ChefController extends AbstractController
     /**
      * @Route(path="/chef", name="chef_index")
      */
-    public function index() : Response
+    public function index(): Response
     {
-        return $this->render('chef/index.html.twig', [
-            'groups' => $this->query->getTodoList(),
-        ]);
+        return $this->render(
+            'chef/index.html.twig',
+            [
+                'groups' => $this->query->getTodoList(),
+            ]
+        );
     }
 
     /**
      * @Route(path="/chef/markprepared", name="chef_markprepared")
      */
-    public function markPrepared(Request $request) : RedirectResponse
+    public function markPrepared(Request $request): RedirectResponse
     {
-        $menuNumbers = array_map(fn(string $itemString) => (int) $itemString, $request->request->get('items'));
+        $menuNumbers = array_map(fn(string $itemString) => (int)$itemString, $request->request->get('items'));
         $tabIdString = $request->request->get('tabId');
         $groupId = $request->request->get('groupId');
 

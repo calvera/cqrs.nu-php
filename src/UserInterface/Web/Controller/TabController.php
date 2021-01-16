@@ -44,35 +44,42 @@ final class TabController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $tableNumber = $form->get('tableNumber')->getData();
 
-            $this->commandBus->handle(new OpenTabCommand(
-                Uuid::uuid4()->toString(),
-                $tableNumber,
-                $form->get('waiter')->getData(),
-            ));
+            $this->commandBus->handle(
+                new OpenTabCommand(
+                    Uuid::uuid4()->toString(),
+                    $tableNumber,
+                    $form->get('waiter')->getData(),
+                )
+            );
 
             return $this->redirectToRoute('tab_order', ['tableNumber' => $tableNumber]);
         }
 
-        return $this->render('tab/open.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        return $this->render(
+            'tab/open.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
     }
 
     /**
      * @Route(path="tab/{tableNumber}/order", name="tab_order")
      */
-    public function order(int $tableNumber, Request $request) : Response
+    public function order(int $tableNumber, Request $request): Response
     {
         $menu = StaticData::getMenu();
 
-        $items = array_map(fn(MenuItem $menuItem) => new OrderItem(
-            $menuItem->menuNumber,
-            $menuItem->description,
-            0
-        ), $menu);
+        $items = array_map(
+            fn(MenuItem $menuItem) => new OrderItem(
+                $menuItem->menuNumber,
+                $menuItem->description,
+                0
+            ),
+            $menu
+        );
 
         $orderModel = new OrderModel($items);
         $form = $this->createForm(OrderType::class, $orderModel);
@@ -99,20 +106,26 @@ final class TabController extends AbstractController
             return $this->redirectToRoute('tab_status', ['tableNumber' => $tableNumber]);
         }
 
-        return $this->render('tab/order.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        return $this->render(
+            'tab/order.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
     }
 
     /**
      * @Route(path="tab/{tableNumber}/status", name="tab_status")
      */
-    public function status(int $tableNumber) : Response
+    public function status(int $tableNumber): Response
     {
-        return $this->render('tab/status.html.twig', [
-            'tableNumber' => $tableNumber,
-            'tab' => $this->queries->tabForTable($tableNumber)
-        ]);
+        return $this->render(
+            'tab/status.html.twig',
+            [
+                'tableNumber' => $tableNumber,
+                'tab' => $this->queries->tabForTable($tableNumber),
+            ]
+        );
     }
 
     /**
@@ -120,7 +133,7 @@ final class TabController extends AbstractController
      */
     public function markServed(int $tableNumber, Request $request)
     {
-        $menuNumbers = array_map(fn(string $itemString) => (int) $itemString, $request->request->get('items'));
+        $menuNumbers = array_map(fn(string $itemString) => (int)$itemString, $request->request->get('items'));
         $tabId = $this->queries->tabIdForTable($tableNumber);
         $this->commandBus->handle(new MarkItemsServedCommand($tabId, $menuNumbers));
 
@@ -136,18 +149,22 @@ final class TabController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            $this->commandBus->handle(new CloseTabCommand(
-                $this->queries->tabIdForTable($tableNumber),
-                $form->get('amountPaid')->getData()
-            ));
+            $this->commandBus->handle(
+                new CloseTabCommand(
+                    $this->queries->tabIdForTable($tableNumber),
+                    $form->get('amountPaid')->getData()
+                )
+            );
 
             return $this->redirectToRoute('home');
         }
 
-        return $this->render('tab/close.html.twig', [
-            'form' => $form->createView(),
-            'invoice' => $this->queries->invoiceForTable($tableNumber),
-        ]);
+        return $this->render(
+            'tab/close.html.twig',
+            [
+                'form' => $form->createView(),
+                'invoice' => $this->queries->invoiceForTable($tableNumber),
+            ]
+        );
     }
 }

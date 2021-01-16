@@ -17,12 +17,19 @@ class OpenTabType extends AbstractType
     {
         $builder
             ->add('tableNumber', IntegerType::class)
-            ->add('waiter', ChoiceType::class, [
-                'choices' => StaticData::getWaitStaff(),
-            ])
-            ->add('save', SubmitType::class, [
-                'label' => 'Open Tab',
-            ])
-        ;
+            ->add(
+                'waiter',
+                ChoiceType::class,
+                [
+                    'choices' => StaticData::getWaitStaff(),
+                ]
+            )
+            ->add(
+                'save',
+                SubmitType::class,
+                [
+                    'label' => 'Open Tab',
+                ]
+            );
     }
 }

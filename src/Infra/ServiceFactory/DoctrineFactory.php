@@ -11,11 +11,10 @@ class DoctrineFactory
 {
     public function create(string $databaseDns = ''): Connection
     {
-
-        $connectionParams = array(
+        $connectionParams = [
             'url' => $databaseDns,
-        );
-        return  DriverManager::getConnection($connectionParams);
+        ];
 
+        return DriverManager::getConnection($connectionParams);
     }
 }

@@ -2,41 +2,41 @@
 {% block title %}Close tab{% endblock %}
 {% block content %}
 
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th scope="col">Description</th>
-                <th scope="col">Quantity</th>
-                <th scope="col">Price each</th>
-                <th scope="col">Sub total</th>
-            </tr>
-        </thead>
+  <table class="table table-bordered">
+    <thead class="thead-light">
+    <tr>
+      <th scope="col">Description</th>
+      <th scope="col">Quantity</th>
+      <th scope="col">Price each</th>
+      <th scope="col">Sub total</th>
+    </tr>
+    </thead>
 
-        <tbody>
-        {% for line in invoice.lines %}
-            <tr>
-                <td>{{ line.description }}</td>
-                <td>{{ line.quantity }}</td>
-                <td>{{ line.priceEach|format_currency('EUR') }}</td>
-                <td>{{ line.subTotal|format_currency('EUR') }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
+    <tbody>
+    {% for line in invoice.lines %}
+      <tr>
+        <td>{{ line.description }}</td>
+        <td>{{ line.quantity }}</td>
+        <td>{{ line.priceEach|format_currency('EUR') }}</td>
+        <td>{{ line.subTotal|format_currency('EUR') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
 
-        <tfoot>
-            <tr>
-                <td colspan="4"><strong>Total: {{ invoice.total|format_currency('EUR') }}</strong></td>
-            </tr>
-        </tfoot>
-    </table>
+    <tfoot>
+    <tr>
+      <td colspan="4"><strong>Total: {{ invoice.total|format_currency('EUR') }}</strong></td>
+    </tr>
+    </tfoot>
+  </table>
 
-    <hr>
+  <hr>
 
-    {% if invoice.hasUnservedItems() %}
-        <div class="alert alert-danger" role="alert">
-            There're unserved items for this table. You won't be able to close it.
-        </div>
-    {% endif %}
+  {% if invoice.hasUnservedItems() %}
+    <div class="alert alert-danger" role="alert">
+      There're unserved items for this table. You won't be able to close it.
+    </div>
+  {% endif %}
 
-    {{ form(form) }}
+  {{ form(form) }}
 {% endblock %}

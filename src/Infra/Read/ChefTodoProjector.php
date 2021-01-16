@@ -21,7 +21,7 @@ class ChefTodoProjector implements Consumer
         $this->connection = $connection;
     }
 
-    public function handle(Message $message) : void
+    public function handle(Message $message): void
     {
         $event = $message->event();
 
@@ -29,19 +29,25 @@ class ChefTodoProjector implements Consumer
             $groupId = Uuid::uuid4()->toString();
 
             //todo ... wrap within transaction
-            $this->connection->insert('read_model_chef_todo_group', [
-                'tab_id' => $event->tabId,
-                'group_id' => $groupId
-            ]);
+            $this->connection->insert(
+                'read_model_chef_todo_group',
+                [
+                    'tab_id' => $event->tabId,
+                    'group_id' => $groupId,
+                ]
+            );
 
             /** @var OrderedItem $item */
             foreach ($event->items as $item) {
-                $this->connection->insert('read_model_chef_todo_item', [
-                    'tab_id' => $event->tabId,
-                    'group_id' => $groupId,
-                    'description' => $item->description,
-                    'menu_number' => $item->menuNumber,
-                ]);
+                $this->connection->insert(
+                    'read_model_chef_todo_item',
+                    [
+                        'tab_id' => $event->tabId,
+                        'group_id' => $groupId,
+                        'description' => $item->description,
+                        'menu_number' => $item->menuNumber,
+                    ]
+                );
             }
         }
 
@@ -56,10 +62,13 @@ class ChefTodoProjector implements Consumer
                         limit 1
                 ';
 
-                $this->connection->executeQuery($sql, [
-                    'group_id' => $event->groupId,
-                    'menu_number' => $menuNumber,
-                ]);
+                $this->connection->executeQuery(
+                    $sql,
+                    [
+                        'group_id' => $event->groupId,
+                        'menu_number' => $menuNumber,
+                    ]
+                );
             }
         }
     }

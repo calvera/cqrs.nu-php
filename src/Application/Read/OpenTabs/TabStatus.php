@@ -27,32 +27,32 @@ final class TabStatus
     /**
      * @return array<TabItem>
      */
-    public function getItemsToServe() : array
+    public function getItemsToServe(): array
     {
         return $this->toServe;
     }
 
-    public function hasItemsToServe() : bool
+    public function hasItemsToServe(): bool
     {
         return count($this->toServe) > 0;
     }
 
-    public function getItemsInPreparation() : array
+    public function getItemsInPreparation(): array
     {
         return $this->inPreparation;
     }
 
-    public function hasItemsInPreparation() : bool
+    public function hasItemsInPreparation(): bool
     {
         return count($this->inPreparation) > 0;
     }
 
-    public function getServedItems() : array
+    public function getServedItems(): array
     {
         return $this->served;
     }
 
-    public function hasItemsServed() : bool
+    public function hasItemsServed(): bool
     {
         return count($this->served) > 0;
     }
