@@ -42,22 +42,30 @@ class EventStoreMessageRepository implements MessageRepository
             return;
         }
 
+        /** @var array<string,array<EventData>> $toSend */
+        $toSend = [];
+        $expectedVersion = [];
         foreach ($messages as $index => $message) {
             $streamName = $this->getStreamName($message->aggregateRootId());
+            if (!isset($toSend[$streamName])) {
+                $toSend[$streamName] = [];
+                $expectedVersion[$streamName] = $message->aggregateVersion() ? $message->aggregateVersion()-2 : ExpectedVersion::ANY;
+            }
+
             $serialized = $this->serializer->serializeMessage($message);
             $serialized['headers'][Header::EVENT_ID] = $serialized['headers'][Header::EVENT_ID] ?? Uuid::uuid4()->toString();
-            $data = new EventData(
+            $event = new EventData(
                 EventId::fromString($serialized['headers'][Header::EVENT_ID]),
                 $serialized['headers'][Header::EVENT_TYPE],
                 true,
                 json_encode($serialized['payload'], JSON_THROW_ON_ERROR | $this->jsonEncodeOptions),
                 json_encode($serialized['headers'], JSON_THROW_ON_ERROR | $this->jsonEncodeOptions)
             );
-            $this->connection->appendToStream(
-                $streamName,
-                $message->aggregateVersion() ? $message->aggregateVersion()-2 : ExpectedVersion::ANY,
-                [$data]
-            );
+            $toSend[$streamName][] = $event;
+        }
+
+        foreach ($toSend as $streamName => $events) {
+            $this->connection->appendToStream($streamName, $expectedVersion[$streamName], $events);
         }
     }
 
