@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cafe\Application\Write;
 
-class CloseTabCommand
+class CloseTabCommand implements LockedCommand
 {
     public string $tabId;
     public float $amountPaid;
@@ -13,5 +13,10 @@ class CloseTabCommand
     {
         $this->tabId = $tabId;
         $this->amountPaid = $amountPaid;
+    }
+
+    public function lockName(): string
+    {
+        return $this->tabId;
     }
 }

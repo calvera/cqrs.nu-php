@@ -55,7 +55,7 @@ class EventStoreMessageRepository implements MessageRepository
             );
             $this->connection->appendToStream(
                 $streamName,
-                ExpectedVersion::ANY,
+                $message->aggregateVersion() ? $message->aggregateVersion()-2 : ExpectedVersion::ANY,
                 [$data]
             );
         }

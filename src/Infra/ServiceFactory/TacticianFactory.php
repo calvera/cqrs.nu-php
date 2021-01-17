@@ -22,6 +22,8 @@ class TacticianFactory
 
     public function create(): CommandBus
     {
+        $lockMiddleware = new RedisLockMiddleware();
+
         $handlerMiddleware = new CommandHandlerMiddleware(
             new ClassNameExtractor(),
             new class($this->handler) implements HandlerLocator {
@@ -32,7 +34,7 @@ class TacticianFactory
                     $this->handler = $handler;
                 }
 
-                public function getHandlerForCommand($commandName)
+                public function getHandlerForCommand($commandName): TabHandler
                 {
                     return $this->handler;
                 }
@@ -40,6 +42,6 @@ class TacticianFactory
             new HandleClassNameInflector(),
         );
 
-        return new CommandBus([$handlerMiddleware]);
+        return new CommandBus([$lockMiddleware, $handlerMiddleware]);
     }
 }

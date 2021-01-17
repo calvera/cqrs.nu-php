@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cafe\Application\Write;
 
-final class OpenTabCommand
+final class OpenTabCommand implements LockedCommand
 {
     public string $tabId;
     public int $tableNumber;
@@ -16,4 +16,9 @@ final class OpenTabCommand
         $this->tableNumber = $tableNumber;
         $this->waiter = $waiter;
     }
+    public function lockName(): string
+    {
+        return $this->tabId;
+    }
+
 }

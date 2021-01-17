@@ -14,6 +14,7 @@
         "eightpoints/guzzle-bundle": "^8.2",
         "eventsauce/doctrine-message-repository": "^0.8.2",
         "league/tactician": "^1.0",
+        "malkusch/lock": "^2.1",
         "phpdocumentor/reflection-docblock": "^5.2",
         "prooph/event-store": "^8.0-rc",
         "prooph/event-store-http-client": "^1.0-beta",

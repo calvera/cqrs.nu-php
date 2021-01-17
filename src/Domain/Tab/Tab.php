@@ -327,7 +327,7 @@ final class Tab implements AggregateRootWithSnapshotting
         $this->aggregateRootId = $aggregateRootId;
     }
 
-    protected function createSnapshotState()
+    protected function createSnapshotState(): Tab
     {
         return $this;
     }

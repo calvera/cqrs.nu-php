@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cafe\Application\Write;
 
-class MarkFoodServedCommand
+class MarkFoodServedCommand implements LockedCommand
 {
     public string $tabId;
     public array $menuNumbers;
@@ -14,4 +14,9 @@ class MarkFoodServedCommand
         $this->tabId = $tabId;
         $this->menuNumbers = $menuNumbers;
     }
+    public function lockName(): string
+    {
+        return $this->tabId;
+    }
+
 }

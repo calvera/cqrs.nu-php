@@ -131,6 +131,9 @@
     "league/tactician": {
         "version": "v1.0.3"
     },
+    "malkusch/lock": {
+        "version": "v2.1"
+    },
     "monolog/monolog": {
         "version": "2.2.0"
     },

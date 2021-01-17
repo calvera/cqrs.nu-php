@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cafe\Application\Write;
 
-class MarkFoodPreparedCommand
+class MarkFoodPreparedCommand implements LockedCommand
 {
     public string $tabId;
     public string $groupId;
@@ -17,4 +17,9 @@ class MarkFoodPreparedCommand
         $this->groupId = $groupId;
         $this->menuNumbers = $menuNumbers;
     }
+    public function lockName(): string
+    {
+        return $this->tabId;
+    }
+
 }

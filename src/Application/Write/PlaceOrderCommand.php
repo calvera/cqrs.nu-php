@@ -6,7 +6,7 @@ namespace Cafe\Application\Write;
 
 use Cafe\Domain\Tab\OrderedItem;
 
-class PlaceOrderCommand
+class PlaceOrderCommand implements LockedCommand
 {
     public string $tabId;
     /** @var array<OrderedItem> */
@@ -17,4 +17,9 @@ class PlaceOrderCommand
         $this->tabId = $tabId;
         $this->items = $items;
     }
+    public function lockName(): string
+    {
+        return $this->tabId;
+    }
+
 }
