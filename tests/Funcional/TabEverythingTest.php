@@ -18,7 +18,7 @@ class TabEverythingTest extends WebTestCase
 
     public function setUp(): void
     {
-        $this->tableNumber = random_int(1, 111111);
+        $this->tableNumber = random_int(1000, 999999);
         $this->client = self::createClient();
     }
 
@@ -80,7 +80,7 @@ class TabEverythingTest extends WebTestCase
     {
         $crawler = $this->client->request('GET', '/chef');
 
-        $form = $crawler->filter('button[type=submit]:first-of-type')->form();
+        $form = $crawler->filter("form#form-${tableNumber}")->form();
         $form->setValues(['items' => [0 => 14]]);
 
         $this->client->submit($form);

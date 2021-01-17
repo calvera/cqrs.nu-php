@@ -33,7 +33,7 @@ class RedisSnapshotRepository implements SnapshotRepository
         ];
         $json = json_encode($payload, JSON_THROW_ON_ERROR);
 
-        $this->redis->setex($snapshot->aggregateRootId()->toString(), $this->ttl, $json);
+        $this->redis->setex($this->getKey($snapshot->aggregateRootId()), $this->ttl, $json);
     }
 
     public function retrieve(AggregateRootId $id): ?Snapshot
@@ -47,6 +47,11 @@ class RedisSnapshotRepository implements SnapshotRepository
         $deserialized = $this->serializer->deserialize($payload['state'], $payload['type'], 'json');
 
         return new Snapshot($id, $payload['version'], $deserialized);
+    }
+
+    private function getKey(AggregateRootId $id): string
+    {
+        return sprintf('snapshot-%s', $id->toString());
     }
 
 }

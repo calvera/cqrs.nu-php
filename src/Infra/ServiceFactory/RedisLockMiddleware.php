@@ -23,8 +23,7 @@ class RedisLockMiddleware implements Middleware
     public function execute($command, callable $next)
     {
         if ($command instanceof LockedCommand) {
-            $lockName = $command->lockName();
-            $mutex = new PHPRedisMutex([$this->redis], "lock-$lockName", 120);
+            $mutex = new PHPRedisMutex([$this->redis], $command->lockName(), 120);
 
             return $mutex->synchronized(
                 function () use ($next, $command) {
