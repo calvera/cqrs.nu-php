@@ -145,7 +145,9 @@ final class TabController extends AbstractController
      */
     public function close(int $tableNumber, Request $request): Response
     {
-        $form = $this->createForm(CloseTabType::class);
+        $invoice = $this->queries->invoiceForTable($tableNumber);
+
+        $form = $this->createForm(CloseTabType::class, ['amountPaid' => $invoice->getTotal()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -163,7 +165,7 @@ final class TabController extends AbstractController
             'tab/close.html.twig',
             [
                 'form' => $form->createView(),
-                'invoice' => $this->queries->invoiceForTable($tableNumber),
+                'invoice' => $invoice,
             ]
         );
     }

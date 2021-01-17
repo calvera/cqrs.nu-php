@@ -55,8 +55,6 @@ prune-cache:
 prune-logs:
 	- ${PHP_DOCKER_COMMAND} rm -fR var/log/*
 
-
-
 .PHONY: test
 test: ## Run phpunit
 	- ${PHP_DOCKER_COMMAND} vendor/bin/phpunit

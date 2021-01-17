@@ -15,13 +15,15 @@ class RedisSnapshotRepository implements SnapshotRepository
     private Redis $redis;
     private SerializerInterface $serializer;
     private int $ttl;
+    private string $prefix;
 
-    public function __construct(SerializerInterface $serializer, int $ttl = 3600)
+    public function __construct(SerializerInterface $serializer, string $prefix = 'dev', int $ttl = 14400)
     {
         $this->redis = new Redis();
         $this->redis->connect('redis');
         $this->serializer = $serializer;
         $this->ttl = $ttl;
+        $this->prefix = $prefix;
     }
 
     public function persist(Snapshot $snapshot): void
@@ -51,7 +53,7 @@ class RedisSnapshotRepository implements SnapshotRepository
 
     private function getKey(AggregateRootId $id): string
     {
-        return sprintf('snapshot-%s', $id->toString());
+        return sprintf('snapshot-%s-%s', $this->prefix, $id->toString());
     }
 
 }
